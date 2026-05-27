@@ -3,7 +3,7 @@
 This repo uses Ansible to configure different aspects of my homelab.
 It started as a private repo, but I'm open sourcing it here.
 
-Some might think showing my home network's configuration and topology is risky and bad, but I'm doing my best to not rely on security through obscurity.
+If you see anything alarming that you don't think should be out in the open, please reach out. I'm doing my best here to not rely on security through obscurity, but I could be missing something. Any help is appreciated.
 
 See `./docs` for more info.
 
