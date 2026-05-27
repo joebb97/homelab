@@ -1,0 +1,17 @@
+- block:
+    - name: "get {{ item.setting }}"
+      command:
+        cmd: "syncthing cli {{ item.setting }} get"
+      register: get_cmd_out
+      changed_when: false
+    - name: "set {{ item.setting }}"
+      command:
+        cmd: "syncthing cli {{ item.setting }} set {{ desired }}"
+      when: desired not in get_cmd_out.stdout
+      # this settings sometimes cause an error because the CLI relies on it
+      ignore_errors: "{{ item.setting is search('raw-use-tls|raw-use-address|password') }}"
+  when: "'gui' in item.setting"
+  become: true
+  become_user: joey
+  vars:
+    desired: "{{ (item.overrides | default({}))[label] | default(item.desired) }}"

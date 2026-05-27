@@ -1,0 +1,15 @@
+- name: fail if empty password
+  fail:
+    msg: "password empty"
+  when: item|length == 0
+  loop: [ "{{ joey_samba_passwd }}", "{{ abby_samba_passwd }}"]
+- name: add samba passwords
+  no_log: true
+  shell: smbpasswd -s -a {{ item.username }}
+  args:
+    stdin: "{{ item.passwd }}\n{{ item.passwd }}"
+  loop:
+    - { username: "joey", passwd: "{{ joey_samba_passwd }}" }
+    - { username: "abby", passwd: "{{ abby_samba_passwd }}" }
+  loop_control:
+    label: "{{ item.username }}"

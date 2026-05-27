@@ -1,0 +1,28 @@
+- name: setup groups
+  group:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ system_groups }}"
+- name: Loop users
+  include_tasks: user.yml
+  loop: "{{ users }}"
+
+- name: Configure sshd
+  lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regex: "^(#)?{{item.key}}"
+    line: "{{item.key}} {{item.value}}"
+    state: present
+  loop:
+    - { key: "PermitRootLogin", value: "prohibit-password" }
+    - { key: "PasswordAuthentication", value: "no" }
+  notify:
+    - restart ssh
+
+- name: setup passwordless sudo for sudo group
+  community.general.sudoers:
+    name: sudo-group-nopasswd
+    group: sudo
+    commands: ALL
+    nopassword: true
+    validation: required

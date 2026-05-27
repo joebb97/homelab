@@ -1,0 +1,58 @@
+hypervisors:
+  hosts:
+    teppelin.blueteam.lan:
+    kamina.blueteam.lan:
+
+syncthing:
+  hosts:
+    zechs.blueteam.lan:
+      label: zechs.blueteam.lan
+    localhost:
+      ansible_connection: local
+      label: leorio.local
+
+vms:
+  hosts:
+    darry.blueteam.lan:
+    wayne.blueteam.lan:
+    vultr-remote:
+      ansible_host: "{{ vultr_remote_host }}"
+      ansible_port: "{{ vultr_remote_port }}"
+    zechs.blueteam.lan:
+
+rpi:
+  hosts:
+    ryu.blueteam.lan:
+      ansible_host: ryu.blueteam.lan
+      ansible_user: root
+
+samba:
+  hosts:
+    zechs.blueteam.lan:
+
+opnsense:
+  hosts:
+    leeron.blueteam.lan:
+      ansible_user: joey
+      ansible_host: leeron.blueteam.lan
+
+juniper_switches:
+  hosts:
+    heero.blueteam.lan:
+  vars:
+    ansible_connection: netconf
+    ansible_network_os: junos
+
+mikrotik:
+  children:
+    swos:
+      hosts:
+        yoko.blueteam.lan:
+    routeros:
+      hosts:
+        zero.blueteam.lan:
+
+all:
+  vars:
+      ansible_user: root
+      internal_domain: blueteam.lan

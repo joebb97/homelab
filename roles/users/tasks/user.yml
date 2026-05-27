@@ -1,0 +1,24 @@
+- name: install packages
+  apt:
+    update_cache: true
+    cache_valid_time: 86400 # 1 day
+    name:
+      - fish
+      - sudo
+- name: make users
+  user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+    uid: "{{ item.uid | default(omit) }}"
+    groups: "{{ item.groups | default(omit) }}"
+    # only affects state == 'absent'
+    remove: true
+- name: authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    exclusive: true
+  when:
+    - item.ssh_key is defined and item.ssh_key != ''
+    - (item.state | default ('present')) != 'absent'

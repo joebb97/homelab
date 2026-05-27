@@ -1,0 +1,8 @@
+- name: start_samba
+  service:
+    name: smb
+    state: restarted
+- name: start_avahi
+  service:
+    name: avahi-daemon
+    state: restarted

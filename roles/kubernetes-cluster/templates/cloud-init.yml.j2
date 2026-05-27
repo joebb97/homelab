@@ -1,0 +1,21 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+user: root
+ssh_authorized_keys:
+  - {{ root_authorized_key }}
+# No, really, cloud-init, we *do* want ssh as root. We don't believe
+# in sudo for automation here.
+disable_root: false
+
+# Install ansible to run ansible-pull to customize this VM.
+packages:
+  - ansible
+  - git
+
+# cloud-init 22.3 and newer support the cc_ansible module. Debian
+# bullseye has 20.x So resort to runcmd, the old-fashioned way, using
+# runcmd directly
+runcmd:
+  - [ ansible-pull, -U, https://{{ "{}:{}@".format(github_username, github_pat) if github_pat is defined }}{{ github_url }}, -i, ansible/inventory-local.sh, ansible/{{ ansible_playbook }}.yml ]

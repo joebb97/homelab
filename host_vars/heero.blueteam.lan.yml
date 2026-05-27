@@ -1,0 +1,141 @@
+desired_interfaces:
+  - name: ge-0/0/0
+    description: Another option for mgmt interface.
+                 top left of device
+  - name: ge-0/0/1
+    description: WAP1(kittan) / TV.
+                 bottom left of device
+  - name: ge-0/0/2
+    description: WAP2(nia)
+  - name: ge-0/0/3
+    description: Access port for GUEST VLAN
+  - name: ge-0/0/4
+    description: CRS309 (zero)
+  - name: ge-0/0/5
+  - name: ge-0/0/6
+  - name: ge-0/0/7
+  - name: ge-0/0/8
+  - name: ge-0/0/9
+  - name: ge-0/0/10
+    description: top right of device
+  - name: ge-0/0/11
+    description: bottom right of device
+  - name: xe-0/1/0
+    description: sfp port on left
+  - name: xe-0/1/1
+    description: sfp port on right
+
+desired_l2_interfaces:
+  - name: ge-0/0/0
+    unit: 0
+    access:
+      vlan: MGMT
+    enhanced_layer: true
+
+  - name: ge-0/0/1
+    unit: 0
+    trunk:
+      native_vlan: "{{ home_vlans_by_name.get('LAN', {}).vlan_id | int }}"
+      allowed_vlans:
+        - LAN
+        - IOT
+        - GUEST
+        - MGMT
+    enhanced_layer: true
+
+  - name: ge-0/0/2
+    unit: 0
+    trunk:
+      allowed_vlans:
+        - LAN
+        - IOT
+        - GUEST
+        - MGMT
+    enhanced_layer: true
+
+  - name: ge-0/0/3
+    unit: 0
+    access:
+      vlan: GUEST
+    enhanced_layer: true
+
+  - name: ge-0/0/4
+    unit: 0
+    access:
+      vlan: MGMT
+    enhanced_layer: true
+
+  - name: ge-0/0/5
+    unit: 0
+    access:
+      vlan: IOT
+    enhanced_layer: true
+  - name: ge-0/0/6
+    unit: 0
+    enhanced_layer: true
+  - name: ge-0/0/7
+    unit: 0
+    enhanced_layer: true
+  - name: ge-0/0/8
+    unit: 0
+    enhanced_layer: true
+  - name: ge-0/0/9
+    unit: 0
+    enhanced_layer: true
+  - name: ge-0/0/10
+    unit: 0
+    enhanced_layer: true
+  - name: ge-0/0/11
+    unit: 0
+    access:
+      vlan: LAN
+    enhanced_layer: true
+  - name: xe-0/1/0
+    unit: 0
+    trunk:
+      allowed_vlans:
+        - LAN
+        - IOT
+        - GUEST
+        - MGMT
+    enhanced_layer: true
+  - name: xe-0/1/1
+    unit: 0
+    trunk:
+      allowed_vlans:
+        - LAN
+        - IOT
+        - GUEST
+        - MGMT
+    enhanced_layer: true
+  - name: irb
+    unit: 0
+    enhanced_layer: true
+  - name: me0
+    unit: 0
+    enhanced_layer: true
+  - name: vme
+    unit: 0
+    enhanced_layer: true
+
+desired_l3_interfaces:
+  - name: irb
+    unit: "{{ home_vlans_by_name.get('MGMT', {}).vlan_id | int }}"
+    ipv4:
+      - address: 10.231.4.9/24
+    ipv6:
+      - address: fde2:10:231:4::9/64
+  # - name: irb
+  #   unit: "{{ home_vlans_by_name.get('test-ansible', {}).vlan_id | int }}"
+  #   ipv4:
+  #     - address: 10.231.88.9/24
+  #   ipv6:
+  #     - address: fde2:10:231:88::9/64
+  - name: me0
+    unit: 0
+    ipv4:
+      - address: dhcp
+  - name: vme
+    unit: 0
+    ipv4:
+      - address: dhcp

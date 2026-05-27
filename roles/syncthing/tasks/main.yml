@@ -1,0 +1,77 @@
+- block:
+  - name: ensure apt keyrings exists
+    file:
+      path: /etc/apt/keyrings
+      state: directory
+      owner: root
+  - name: install syncthing release-key.gpg
+    copy:
+      src: release-key.gpg
+      dest: /etc/apt/keyrings/syncthing-archive-keyring.gpg
+  - name: add syncthing to apt sources
+    apt_repository:
+      repo: deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing candidate
+      state: present
+      filename: syncthing
+  - name: install syncthing
+    apt:
+      update_cache: true
+      cache_valid_time: 3600 # 1 hour
+      name:
+        - syncthing
+  - name: enable service syncthing
+    systemd_service:
+      name: syncthing@joey
+      enabled: true
+      masked: no
+  - name: start service syncthing
+    systemd_service:
+      name: syncthing@joey
+      state: started
+  when: ansible_facts['distribution'] == 'Debian'
+
+- name: include vault
+  include_vars: "{{ playbook_dir }}/vault/vault.yml"
+  no_log: true
+
+- name: set syncthing gui settings
+  include_tasks: gui-settings.yml
+  # don't print desired because it contains sensitive info
+  loop: "{{ settings.gui }}"
+  loop_control:
+    label: "{{ item.setting }}"
+
+- name: Fetch local device ID
+  uri:
+    url: "http://localhost:{{ listen_port }}/rest/system/status"
+    headers:
+      X-API-Key: "{{ gui_apikey }}"
+    validate_certs: false
+  register: local_status
+
+- name: Set device ID as host fact
+  set_fact:
+    syncthing_device_id: "{{ local_status.json.myID }}"
+
+- name:
+  debug:
+    var: hostvars[inventory_hostname].label
+
+- name: Add peer devices
+  uri:
+    url: "https://localhost:{{ listen_port }}/rest/config/devices/{{ hostvars[item].syncthing_device_id }}"
+    validate_certs: false
+    method: PUT
+    headers:
+      X-API-Key: "{{ gui_apikey }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      deviceID: "{{ hostvars[item].syncthing_device_id }}"
+      name: "{{ hostvars[item].label | default(item) }}"
+      addresses: ["dynamic"]
+    status_code: [200, 201, 204]
+  loop: "{{ groups['syncthing'] | difference([inventory_hostname]) }}"
+  when: hostvars[item].syncthing_device_id is defined
+
+# - name: Add folders

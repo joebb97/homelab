@@ -1,0 +1,9 @@
+# Originally copied from https://github.com/achernya/homelab
+
+- hosts: hypervisors
+  strategy: free
+  roles:
+    - ansible-venv
+    - kubernetes-cluster
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

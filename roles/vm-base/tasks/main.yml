@@ -1,0 +1,24 @@
+- name: Install qemu-guest-agent
+  apt:
+    name: qemu-guest-agent
+    state: present
+
+- name: Enable qemu-guest-agent
+  systemd:
+    name: qemu-guest-agent
+    enabled: yes
+    masked: no
+
+- name: Start qemu-guest-agent
+  systemd:
+    name: qemu-guest-agent
+    state: started
+
+- name: Remove cloud-init auto-generated network configuration
+  shell:
+    cmd: rm -f /run/network/interfaces.d/*
+  notify: restart networking
+  # Debian 12 uses systemd-networkd and doesn't have the cloud-init
+  # auto-generated network configuration for DHCP problem that Debian
+  # had.
+  when: ansible_distribution == 'Debian' and ansible_distribution_version == '11'

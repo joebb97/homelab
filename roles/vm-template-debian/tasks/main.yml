@@ -1,0 +1,106 @@
+- name: Import config variables
+  include_role:
+    name: proxmox-api
+    public: true
+
+- name: Download Debian Cloud image
+  get_url:
+    url: "{{ debian_image_url }}"
+    dest: "{{ proxmox_storage_path }}/template/iso/{{ debian_dest_filename }}"
+    mode: "0644"
+    # This is paranoia since we"re downloading over HTTPS, but also
+    # means that the download is not attempted if the file matches
+    checksum: "{{ debian_checksum }}"
+  when: inventory_hostname == ansible_play_batch[0]
+
+- name: Create debian-template base VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_token_id: "{{ proxmox_api_token_id }}"
+    api_token_secret: "{{ proxmox_api_token_secret }}"
+    name: "{{ template_vm_name }}"
+    vmid: "{{ template_vmid }}"
+    node: "{{ groups['hypervisors'][0] }}"
+    memory: "{{ 8 * 1024 }}" # in MiB
+    agent: yes
+    boot: "cnd"
+    sockets: 1
+    cores: 12
+    cpu: "Broadwell-noTSX-IBRS"
+    machine: "q35"
+    net:
+      net0: "virtio,bridge=vmbr0"
+      net1: "virtio,bridge=vmbr1"
+    ostype: "l26"
+    scsihw: "virtio-scsi-pci"
+    serial:
+      serial0: "socket"
+  when: inventory_hostname == ansible_play_batch[0]
+
+- name: Check configuration of base VM
+  command:
+    cmd: "qm config {{ template_vmid }}"
+  register: vm_config
+  # This command is read-only
+  changed_when: false
+  when: inventory_hostname == ansible_play_batch[0]
+
+- name: Import Debian Cloud image as root disk to base VM
+  command:
+    cmd: "{{ item }}"
+  with_items:
+    # Import the disk from the QCOW2 image to the underlying storage as a raw disk image
+    - "qm importdisk {{ template_vmid }} {{ proxmox_storage_path }}/template/iso/{{ debian_dest_filename }} {{ proxmox_volume_storage }}"
+    # Activate the disk, attaching it to the SCSI bus and making it a boot target
+    - "qm set {{ template_vmid }} --scsi0 {{ proxmox_volume_storage }}:vm-{{ template_vmid }}-disk-0 --bootdisk scsi0"
+  when:
+    - inventory_hostname == ansible_play_batch[0]
+    - vm_config.stdout.find("scsi0") == -1
+
+- name: Attach CloudInit disk to base VM
+  command:
+    cmd: "{{ item }}"
+  with_items:
+    - "qm set {{ template_vmid }} --scsi1 {{ proxmox_volume_storage }}:cloudinit"
+  when:
+    - inventory_hostname == ansible_play_batch[0]
+    - vm_config.stdout.find("scsi1") == -1
+
+- name: Configure disk on base VM
+  community.proxmox.proxmox_disk:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_token_id: "{{ proxmox_api_token_id }}"
+    api_token_secret: "{{ proxmox_api_token_secret }}"
+    aio: "io_uring"
+    discard: "on"
+    disk: "scsi0"
+    ssd: true
+    vmid: "{{ template_vmid }}"
+  when:
+    - inventory_hostname == ansible_play_batch[0]
+    - vm_config.stdout.find("scsi0") == -1
+
+- name: Resize disk on base VM
+  community.proxmox.proxmox_disk:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_token_id: "{{ proxmox_api_token_id }}"
+    api_token_secret: "{{ proxmox_api_token_secret }}"
+    vmid: "{{ template_vmid }}"
+    disk: "scsi0"
+    size: "{{ 40 * 1024 * 1024 * 1024 }}" # in bytes, despite documentation saying GiB
+    state: "resized"
+  when:
+    - inventory_hostname == ansible_play_batch[0]
+    - vm_config.stdout.find("template:") == -1
+
+# Merely setting `template: 1` in the configuration prevents linked
+# clones from working. So use the conversion command explicitly.
+- name: Convert base VM to template
+  command:
+    cmd: "qm template {{ template_vmid }}"
+  when:
+    - inventory_hostname == ansible_play_batch[0]
+    - vm_config.stdout.find("template:") == -1

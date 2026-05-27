@@ -1,0 +1,56 @@
+- name: Install samba and avahi
+  apt:
+    name:
+      - samba
+      - avahi-daemon
+- name: create spinners-users
+  group:
+    name: spinners-users
+    state: present
+- name: create theflash-users
+  group:
+    name: theflash-users
+    state: present
+- name: create samba users and add to group
+  user:
+    name: "{{ item }}"
+    groups: "theflash-users,spinners-users"
+  loop:
+    - joey
+    - abby
+- name: ensure drives have right permissions
+  file:
+    path: "/mnt/{{ item }}"
+    state: directory
+    owner: root
+    group: "{{ item }}-users"
+    mode: 0775
+  loop:
+    - spinners
+    - theflash
+- name: ensure shares exist and have right permissions
+  file:
+    path: "/mnt/{{ item.name }}/{{ item.share }}"
+    state: directory
+    owner: root
+    group: "{{ item.name }}-users"
+    mode: 0775
+  loop:
+    - { name: 'spinners', share: 'macos-backups'}
+    - { name: 'spinners', share: 'data'}
+    - { name: 'theflash', share: 'data'}
+- name: configure the samba share
+  blockinfile:
+    path: /etc/samba/smb.conf
+    block: "{{ lookup('file', 'smb.conf') }}"
+  notify:
+    - start_samba
+- name: configure avahi-daemon
+  blockinfile:
+    create: true
+    path: /etc/avahi/services/samba.service
+    block: "{{ lookup('file', 'avahi-daemon-samba.xml') }}"
+  notify:
+    - start_avahi
+
+- include_tasks: passwds.yml

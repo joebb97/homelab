@@ -1,0 +1,19 @@
+home_vlans:
+  - name: LAN
+    vlan_id: 10
+    description: "Regular trusted LAN traffic"
+  - name: IOT
+    vlan_id: 20
+    description: "Untrusted IOT traffic"
+  - name: GUEST
+    vlan_id: 30
+    description: "Untrusted guest wi-fi traffic"
+  - name: MGMT
+    vlan_id: 40
+    description: "Trusted management network"
+  - name: test-ansible
+    vlan_id: 50
+    description: test-ansible
+
+home_vlans_by_name: "{{ dict(home_vlans | map(attribute='name') | zip(home_vlans)) }}"
+home_vlans_by_id: "{{ dict(home_vlans | map(attribute='vlan_id') | zip(home_vlans)) }}"

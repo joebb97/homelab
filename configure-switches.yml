@@ -1,0 +1,30 @@
+- hosts: juniper_switches
+  gather_facts: no
+  tags:
+    - juniper
+  vars:
+    ansible_connection: netconf
+    ansible_network_os: junos
+    # ansible_connection: local
+    # host: "{{ inventory_hostname }}"
+    # user: root
+  roles:
+    - juniper-switches
+
+- hosts: swos
+  gather_facts: no
+  connection: local
+  tags:
+    - mikrotik
+    - swos
+  roles:
+    - mikrotik-swos
+
+- hosts: routeros
+  gather_facts: no
+  connection: local
+  tags:
+    - mikrotik
+    - routeros
+  roles:
+    - mikrotik-routeros

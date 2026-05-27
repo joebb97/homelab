@@ -1,0 +1,122 @@
+- name: Upgrade Debian 12 bookworm to Debian 13 trixie
+  hosts: vms
+  become: true
+  serial: 1
+
+  vars:
+    debian_components: "main contrib non-free non-free-firmware"
+    debian_keyring: /usr/share/keyrings/debian-archive-keyring.gpg
+
+  tasks:
+    - name: Confirm host is Debian
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "Debian"
+        fail_msg: "This playbook only supports Debian."
+
+    - name: Confirm host is bookworm
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution_major_version == "12"
+        fail_msg: "Host is not Debian 12 bookworm."
+
+    - name: Check for broken packages
+      ansible.builtin.command: dpkg --audit
+      register: dpkg_audit
+      changed_when: false
+      failed_when: dpkg_audit.stdout | length > 0
+
+    - name: Check for held packages
+      ansible.builtin.command: apt-mark showhold
+      register: apt_holds
+      changed_when: false
+      failed_when: apt_holds.stdout | length > 0
+
+    - name: Update bookworm package index
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Fully update current bookworm system
+      ansible.builtin.apt:
+        upgrade: full
+        autoremove: true
+
+    - name: Back up APT config
+      ansible.builtin.command: cp -a /etc/apt /etc/apt.bak.bookworm-to-trixie
+      args:
+        creates: /etc/apt.bak.bookworm-to-trixie
+
+    - name: Disable existing APT source files
+      ansible.builtin.shell: |
+        set -eu
+
+        if [ -f /etc/apt/sources.list ]; then
+          mv /etc/apt/sources.list /etc/apt/sources.list.disabled-for-trixie-upgrade
+        fi
+
+        for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+          [ -e "$f" ] || continue
+          mv "$f" "$f.disabled-for-trixie-upgrade"
+        done
+      args:
+        creates: /etc/apt/sources.list.disabled-for-trixie-upgrade
+
+    - name: Write Debian trixie deb822 sources
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/debian.sources
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Types: deb
+          URIs: https://deb.debian.org/debian
+          Suites: trixie trixie-updates
+          Components: {{ debian_components }}
+          Signed-By: {{ debian_keyring }}
+
+          Types: deb
+          URIs: https://security.debian.org/debian-security
+          Suites: trixie-security
+          Components: {{ debian_components }}
+          Signed-By: {{ debian_keyring }}
+
+    - name: Update trixie package index
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Minimal upgrade to trixie
+      ansible.builtin.apt:
+        upgrade: safe
+
+    - name: Install current trixie kernel metapackage
+      ansible.builtin.apt:
+        name: linux-image-amd64
+        state: latest
+
+    - name: Full upgrade to trixie
+      ansible.builtin.apt:
+        upgrade: full
+        autoremove: true
+
+    - name: Reboot into upgraded system
+      ansible.builtin.reboot:
+        reboot_timeout: 900
+
+    - name: Refresh facts after reboot
+      ansible.builtin.setup:
+
+    - name: Confirm host is now trixie
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution_major_version == "13"
+        fail_msg: "Upgrade did not finish cleanly; host is not Debian 13."
+
+    - name: Check failed services
+      ansible.builtin.command: systemctl --failed --no-pager
+      register: failed_services
+      changed_when: false
+
+    - name: Show failed services
+      ansible.builtin.debug:
+        var: failed_services.stdout_lines

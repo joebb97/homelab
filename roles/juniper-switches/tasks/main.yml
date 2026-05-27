@@ -1,0 +1,68 @@
+- name: Set hostname
+  juniper.device.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - set system domain-name {{ internal_domain }}
+  tags: switches-real
+
+- block:
+  - name: Gather current VLANs
+    juniper.device.junos_vlans:
+      state: gathered
+    register: vlan_query
+
+  - name: Gather current l2 interfaces
+    juniper.device.junos_l2_interfaces:
+      state: gathered
+    register: l2_interfaces_query
+
+  - name: Gather current l3 interfaces
+    juniper.device.junos_l3_interfaces:
+      state: gathered
+    register: l3_interfaces_query
+
+  tags: switches-real
+
+- name: Include mock data
+  tags: switches-mock
+  include_tasks: mocks.yml
+
+- name: Set l3 interfaces
+  tags: switches-real
+  juniper.device.junos_l3_interfaces:
+    config: "{{ desired_l3_interfaces }}"
+    state: replaced
+
+
+- set_fact:
+    current_irbs: "{{ l3_interfaces_query.gathered | selectattr('name', 'equalto', 'irb') }}"
+    current_vlans: "{{ vlan_query.gathered }}"
+    desired_vlans: "{{ home_vlans }}"
+    desired_irbs: "{{ desired_l3_interfaces | selectattr('name', 'equalto', 'irb' ) }}"
+  tags:
+    - switches-mock
+    - switches-real
+
+- name: Make vlan lines
+  tags:
+    - switches-mock
+    - switches-real
+  set_fact:
+    vlan_config_lines: "{{ current_vlans | generate_vlan_config(home_vlans, l2_interfaces_query.gathered, current_irbs, desired_irbs) }}"
+
+- name: Do vlan lines
+  tags:
+    - switches-real
+  juniper.device.junos_config:
+    lines: "{{ vlan_config_lines }}"
+
+- name: Set l2 interfaces
+  tags: switches-real
+  juniper.device.junos_l2_interfaces:
+    config: "{{ desired_l2_interfaces }}"
+    state: replaced
+
+- name: Set interfaces
+  tags: switches-real
+  juniper.device.junos_interfaces:
+    config: "{{ desired_interfaces }}"

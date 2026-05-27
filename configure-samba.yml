@@ -1,0 +1,3 @@
+- hosts: samba
+  roles:
+    - samba

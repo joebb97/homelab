@@ -1,0 +1,111 @@
+- name: Debug mock data
+  tags:
+    - switches-mock
+  block:
+    - name: Set mock vlan_query and l3_interfaces_query
+      set_fact:
+        vlan_query:
+          gathered:
+            - name: ALAN
+              vlan_id: 10
+            - l3_interface: irb.40
+              name: MGMT
+              vlan_id: 40
+            - l3_interface: irb.0
+              name: default
+              vlan_id: 1
+            - name: test-ansible
+              vlan_id: 50
+
+        l2_interfaces_query:
+          gathered:
+            -   access:
+                    vlan: vlan40
+                enhanced_layer: true
+                name: ge-0/0/0
+                unit: 0
+            -   access:
+                    vlan: ALAN
+                enhanced_layer: true
+                name: ge-0/0/1
+                unit: 0
+            -   access:
+                    vlan: ALAN
+                enhanced_layer: true
+                name: ge-0/0/2
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/3
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/4
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/5
+                unit: 0
+            -   access:
+                    vlan: test-ansible
+                enhanced_layer: false
+                name: ge-0/0/6
+                unit: 0
+            -   access:
+                    vlan: test-ansible
+                enhanced_layer: false
+                name: ge-0/0/7
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/8
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/9
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/10
+                unit: 0
+            -   enhanced_layer: false
+                name: ge-0/0/11
+                unit: 0
+            -   enhanced_layer: true
+                name: xe-0/1/0
+                trunk:
+                    allowed_vlans:
+                    - ALAN
+                    - vlan40
+                unit: 0
+            -   enhanced_layer: false
+                name: xe-0/1/1
+                unit: 0
+            -   enhanced_layer: false
+                name: irb
+                unit: 0
+            -   enhanced_layer: false
+                name: me0
+                unit: 0
+            -   enhanced_layer: false
+                name: vme
+                unit: 0
+        l3_interfaces_query:
+          gathered:
+            - name: irb
+              unit: '0'
+              ipv4:
+                - address: dhcp
+            - name: irb
+              unit: '50'
+              ipv4:
+                - address: 10.231.88.9/24
+            - name: irb
+              unit: '40'
+              ipv4:
+                - address: 10.231.4.9/24
+              ipv6:
+                - address: fde2:10:231:4::9/64
+            - name: me0
+              unit: '0'
+              ipv4:
+                - address: dhcp
+            - name: vme
+              unit: '0'
+              ipv4:
+                - address: dhcp
+

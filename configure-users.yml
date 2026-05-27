@@ -1,0 +1,4 @@
+- hosts: hypervisors,vms,rpi
+  become: true
+  roles:
+    - users

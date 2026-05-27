@@ -1,0 +1,12 @@
+- name: include vault
+  include_vars: "{{ playbook_dir }}/vault/vault.yml"
+
+- debug:
+    var: mikrotik_swos
+
+- name: apply config
+  swos:
+    host: "{{ ansible_host }}"
+    username: admin
+    password: "{{ mikrotik_swos.creds[ansible_host].password }}"
+    config: "{{ desired_config }}"

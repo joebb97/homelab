@@ -1,0 +1,14 @@
+- name: common packages
+  apt:
+    update_cache: true
+    cache_valid_time: 86400 # 1 day
+    name:
+      - iperf3
+      - htop
+      - btop
+      - vim
+      - psmisc
+      - sudo
+      - jq
+      - curl
+      - hping3

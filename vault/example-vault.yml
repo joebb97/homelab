@@ -1,0 +1,21 @@
+samba:
+  joey_samba_passwd: REDACTED
+  abby_samba_passwd: REDACTED
+
+syncthing:
+  gui_user: admin
+  gui_password: REDACTED
+  gui_apikey: REDACTED
+
+mikrotik_routeros:
+  creds:
+    zero.blueteam.lan:
+      password: REDACTED
+
+mikrotik_swos:
+  creds:
+    yoko.blueteam.lan:
+      password: REDACTED
+
+vultr_remote_host: REDACTED
+vultr_remote_port: REDACTED

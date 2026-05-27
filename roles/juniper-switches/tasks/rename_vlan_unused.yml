@@ -1,0 +1,46 @@
+- name: Set rename VLAN lookup facts
+  tags:
+    - switches-mock
+    - switches-real
+  set_fact:
+    home_vlan_with_name: "{{ home_vlans_by_name.get(item.name) }}"
+    home_vlan_with_id: "{{ home_vlans_by_id.get(item.vlan_id) }}"
+
+- name: Make rename VLAN lines
+  tags:
+    - switches-mock
+    - switches-real
+  set_fact:
+    rename_lines: |
+      rename vlans {{ item.name }} to {{ home_vlan_with_id.name }}
+      {% for iface in l2_interfaces_query.gathered %}
+        {% set vmember = none %}
+        {% if iface.access is defined and iface.access.vlan == item.name %}
+          {% set vmember = iface.access.vlan %}
+        {% elif iface.trunk is defined and item.name in iface.trunk.allowed_vlans %}
+          {% set vmember = iface.trunk.allowed_vlans | select('equalto', item.name) | first %}
+        {% endif %}
+        {% if vmember is not none %} 
+          delete interfaces {{ iface.name }} unit 0 family ethernet-switching vlan members {{ vmember }}
+          set interfaces {{ iface.name }} unit 0 family ethernet-switching vlan members {{ home_vlan_with_id.name }}
+        {% endif %}
+      {% endfor %}
+  when:
+    - home_vlan_with_id is not none
+    - item.name != home_vlan_with_id.name
+
+- block:
+    - name: Debug rename lines
+      tags:
+        - switches-mock
+        - switches-real
+      debug:
+        msg:
+          - "{{ rename_lines }}"
+
+    - name: Rename VLAN
+      tags:
+        - switches-real
+      juniper.device.junos_config:
+        lines: "{{ rename_lines }}"
+  when: rename_lines is defined

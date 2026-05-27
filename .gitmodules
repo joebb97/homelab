@@ -1,0 +1,3 @@
+[submodule "modules/swos"]
+	path = modules/swos
+	url = https://github.com/lanrat/python-mikrotik-swos.git

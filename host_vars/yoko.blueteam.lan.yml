@@ -1,0 +1,135 @@
+desired_config:
+  system:
+    identity: yoko
+    static_ip: 10.231.4.2
+    address_acquisition: static
+    # mac: f4:1e:57:19:11:6d
+  ports:
+  - port: 1
+    name: 'P1:trunk(off) '
+    enabled: true
+    auto_negotiation: true
+  - port: 2
+    name: P2:desktop
+    enabled: true
+    auto_negotiation: true
+  - port: 3
+    name: P3:lap
+    enabled: true
+    auto_negotiation: true
+  - port: 4
+    name: P4:mgmt a40
+    enabled: true
+    auto_negotiation: true
+  - port: 5
+    name: P5:kam
+    enabled: true
+    auto_negotiation: true
+  - port: 6
+    name: P6:kurap
+    enabled: true
+    auto_negotiation: true
+  - port: 7
+    name: P7:tep
+    enabled: true
+    auto_negotiation: true
+  - port: 8
+    name: P8:wap(k) trunk
+    enabled: true
+    auto_negotiation: true
+  - port: 9
+    name: SFP+1-zero
+    enabled: true
+    auto_negotiation: true
+  - port: 10
+    name: SFP+2-desktop
+    enabled: true
+    auto_negotiation: true
+  vlans:
+  - vlan_id: 10
+    member_ports:
+    - 1
+    - 8
+    - 9
+    - 10
+    igmp_snooping: false
+  - vlan_id: 20
+    member_ports:
+    - 1
+    - 8
+    - 9
+    igmp_snooping: false
+  - vlan_id: 30
+    member_ports:
+    - 1
+    - 8
+    - 9
+    igmp_snooping: false
+  - vlan_id: 40
+    member_ports:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    igmp_snooping: false
+  port_vlans:
+  - port: 1
+    vlan_mode: Strict
+    vlan_receive: Only Tagged
+    default_vlan_id: 1
+    force_vlan_id: false
+  - port: 2
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 3
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 4
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 5
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 6
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 7
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 40
+    force_vlan_id: false
+  - port: 8
+    vlan_mode: Strict
+    vlan_receive: Only Tagged
+    default_vlan_id: 10
+    force_vlan_id: false
+  - port: 9
+    vlan_mode: Strict
+    vlan_receive: Only Tagged
+    default_vlan_id: 1
+    force_vlan_id: false
+  - port: 10
+    vlan_mode: Strict
+    vlan_receive: Only Untagged
+    default_vlan_id: 10
+    force_vlan_id: false
+  snmp:
+    enabled: false
+    community: public
+    contact: ''
+    location: ''

@@ -1,0 +1,4 @@
+# ssh authorized_key that will be installed for root inside the
+# VMs. Must be a key that you have access to to run ansible playbooks
+# across the VMs.
+root_authorized_key: "{{undef(hint='You must specify an ssh authorized key') }}"

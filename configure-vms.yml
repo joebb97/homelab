@@ -1,0 +1,8 @@
+- hosts: vms
+  roles:
+    - vms
+
+- hosts: syncthing
+  roles:
+    - name: syncthing
+      tags: syncthing
