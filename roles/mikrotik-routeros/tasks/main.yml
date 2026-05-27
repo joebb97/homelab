@@ -1,3 +1,5 @@
+# Referenced https://wiphoo.dev/blog/2025/04/enabling_mikrotik_rest_api_over_ssl_using_ansible/
+
 - name: install certificate
   vars:
     ansible_network_os: community.routeros.routeros
