@@ -28,6 +28,12 @@ To run other ad-hoc commands on this host that doesn't have ssh keys yet
 
 `uv run ansible other -e "ansible_password=$PW" -m command -a 'echo hi'`
 
+## Ad-hoc commands
+
+If you need to run an ad-hoc command on a host that has its inventory variables defined in a vault, do this
+
+`uv run ansible -e @vault/vault.yml vultr-remote -m command -a 'echo hi'`
+
 ## Run one part of a playbook
 
 Use tags
