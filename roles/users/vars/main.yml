@@ -5,6 +5,7 @@ users:
     shell: /usr/bin/fish
     ssh_key: |
       ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJIBoIXQTB8gXPDJtEPbWAgTtFrJ8sBARAq9TuP9YI/lQHXURewQvu7fvhj79iHdzDeBPzfcjr0NwrE8KvJKR18= joey's key
+      ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHviSXZOssIUe2SR8AsUgsgripWbdvnEftLtRs9+jBl4eiaHFEE/cdzh+6UsKgyor1KQS8UovwF9NwnOcXtiWYA= joey's other key
     uid: 1010
     groups:
       - sudo
