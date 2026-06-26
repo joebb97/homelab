@@ -1,0 +1,11 @@
+- hosts: routeros
+  gather_facts: no
+  vars:
+    ansible_network_os: community.routeros.routeros
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: admin
+  tags:
+    - mikrotik
+    - routeros
+  roles:
+    - mikrotik-routeros-bootstrap

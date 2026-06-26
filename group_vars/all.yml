@@ -14,6 +14,12 @@ home_vlans:
   - name: test-ansible
     vlan_id: 50
     description: test-ansible
+  - name: LAB1
+    vlan_id: 60
+    description: "LAB1 network, no public access"
+  - name: LAB2
+    vlan_id: 70
+    description: "LAB2 network, no public access"
 
 home_vlans_by_name: "{{ dict(home_vlans | map(attribute='name') | zip(home_vlans)) }}"
 home_vlans_by_id: "{{ dict(home_vlans | map(attribute='vlan_id') | zip(home_vlans)) }}"

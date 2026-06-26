@@ -1,69 +1,31 @@
-# Referenced https://wiphoo.dev/blog/2025/04/enabling_mikrotik_rest_api_over_ssl_using_ansible/
-
-- name: install certificate
-  vars:
-    ansible_network_os: community.routeros.routeros
-    ansible_connection: ansible.netcommon.network_cli
-    ansible_user: admin
-  tags:
-    - newcert
-    - never
-  block:
-    - name: Create certificate template
-      community.routeros.command:
-        commands:
-          - /certificate add name={{ inventory_hostname }} common-name={{ inventory_hostname }} key-usage=key-cert-sign,crl-sign
-
-    - name: Sign the certificate (self-signed)
-      community.routeros.command:
-        commands:
-          - /certificate sign {{ inventory_hostname }} name={{ inventory_hostname }}
-
-    - name: Confirm certificate is created
-      community.routeros.command:
-        commands:
-          - /certificate print
-      register: service_status
-
-    - name: Show output
-      debug:
-        var: service_status.stdout_lines
-
 - name: include vault
   include_vars: "{{ playbook_dir }}/vault/vault.yml"
 
-- name: enable api-ssl
-  vars:
-    ansible_network_os: community.routeros.routeros
-    ansible_connection: ansible.netcommon.network_cli
-    ansible_user: admin
-  tags:
-    - apissl
-    - never
-  block:
-    - name: Enable api-ssl
-      community.routeros.command:
-        commands:
-          - /ip service set api-ssl disabled=no
-          - /ip service set api-ssl certificate={{ inventory_hostname }}
-
 - name: RouterOS test with API
-  module_defaults:
-    group/community.routeros.api:
-      hostname: "{{ ansible_host }}"
-      password: "{{ mikrotik_routeros.creds[ansible_host].password }}"
-      username: admin
-      # The following options configure TLS/SSL.
-      # Depending on your setup, these options need different values:
-      tls: true
-      validate_certs: false
-      validate_cert_hostname: true
-      # If you are using your own PKI, specify the path to your CA certificate here:
-      # ca_path: /path/to/ca-certificate.pem
   block:
     - name: Gather facts
       community.routeros.api_facts:
 
-    - name: Get "ip address print"
+    - name: bridge port
       community.routeros.api:
-        path: "ip address"
+        path: interface bridge port
+
+    - name: bridge vlan
+      community.routeros.api:
+        path: interface bridge vlan
+
+    # access ports are configured with interface bridge port
+    # they are automatically added to interface bridge vlan
+    # when you set pvid=num
+    - name: bridge port
+      community.routeros.api_modify:
+        path: interface bridge port
+        data: "{{ bridge_port }}"
+
+    # interface bridge vlan is how you configure trunk ports.
+    # access ports are automatically added to this config
+    # when you set them up with interface bridge port
+    - name: bridge vlan modify
+      community.routeros.api_modify:
+        path: interface bridge vlan
+        data: "{{ bridge_vlan }}"

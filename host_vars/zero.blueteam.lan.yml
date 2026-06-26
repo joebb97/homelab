@@ -1,0 +1,40 @@
+bridge_vlan:
+  - bridge: bridge
+    comment: 1-teppelin,7-hero,8-yoko managed by ansible
+    tagged: sfp-sfpplus1,sfp-sfpplus7,sfp-sfpplus8
+    vlan-ids: "{{ home_vlans |
+                  rejectattr('name', 'in', ['LAB1','LAB2', 'test-ansible']) |
+                  map(attribute='vlan_id') | join(',') }}"
+  - bridge: bridge
+    comment: 2-kamina managed by ansible
+    tagged: sfp-sfpplus2
+    vlan-ids: "{{ home_vlans | map(attribute='vlan_id') | join(',') }}"
+
+bridge_port:
+  - bridge: bridge
+    comment: heero - managed by ansible
+    interface: ether1
+    pvid: "{{ home_vlans_by_name.get('MGMT', {}).vlan_id }}"
+  # even though this is a trunk port I still want its comment to be controlled here
+  - bridge: bridge
+    comment: yoko - managed by ansible
+    interface: sfp-sfpplus1
+  - bridge: bridge
+    comment: kamina - managed by ansible
+    interface: sfp-sfpplus2
+  - bridge: bridge
+    comment: Laptop - managed by ansible
+    interface: sfp-sfpplus3
+    pvid: "{{ home_vlans_by_name.get('LAN', {}).vlan_id }}"
+  - bridge: bridge
+    comment: other a10 - managed by ansible
+    interface: sfp-sfpplus4
+    pvid: "{{ home_vlans_by_name.get('LAN', {}).vlan_id }}"
+  - bridge: bridge
+    comment: lab1 - managed by ansible
+    interface: sfp-sfpplus5
+    pvid: "{{ home_vlans_by_name.get('LAB1', {}).vlan_id }}"
+  - bridge: bridge
+    comment: lab2 - managed by ansible
+    interface: sfp-sfpplus6
+    pvid: "{{ home_vlans_by_name.get('LAB2', {}).vlan_id }}"

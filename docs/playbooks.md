@@ -18,7 +18,7 @@ example
 
 ## Configure a host that doesn't have ssh keys on it yet
 
-Assuming the ansible_user has sudo privile(-b connects and then becomes sudo). 
+Assuming the ansible_user has sudo privilege (-b connects and then becomes sudo). 
 
 `uv run ansible-playbook configure-users.yml -e "ansible_password=$PW" --limit $HOST -b`
 

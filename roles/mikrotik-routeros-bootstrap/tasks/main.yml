@@ -1,0 +1,47 @@
+# Referenced https://wiphoo.dev/blog/2025/04/enabling_mikrotik_rest_api_over_ssl_using_ansible/
+- name: install certificate
+  vars:
+    ansible_network_os: community.routeros.routeros
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: admin
+  block:
+    - name: Create certificate authority
+      community.routeros.command:
+        commands:
+          - /certificate add name={{ inventory_hostname }} common-name={{ inventory_hostname }} key-usage=key-cert-sign,crl-sign
+
+    - name: Create api-server certificate
+      community.routeros.command:
+        commands:
+          - /certificate add name=api-server common-name={{ inventory_hostname }} key-usage=tls-server
+          - /certificate sign api-server ca={{ inventory_hostname }}
+          - /certificate export-certificate {{ inventory_hostname }}
+
+    - name: Confirm certificate is created
+      community.routeros.command:
+        commands:
+          - /certificate print
+      register: service_status
+
+    - name: Show output
+      debug:
+        var: service_status.stdout_lines
+
+- name: Copy PEM from mikrotik
+  vars:
+    ansible_connection: local
+  command:
+    "scp admin@{{ inventory_hostname }}:/cert_export_{{ inventory_hostname }}.crt {{ playbook_dir }}/roles/mikrotik-routeros/files/{{ inventory_hostname }}.pem"
+  tags: thing
+
+- name: enable api-ssl
+  vars:
+    ansible_network_os: community.routeros.routeros
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: admin
+  block:
+    - name: Enable api-ssl
+      community.routeros.command:
+        commands:
+          - /ip service set api-ssl disabled=no
+          - /ip service set api-ssl certificate=api-server

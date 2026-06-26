@@ -1,8 +1,8 @@
-- name: include vault
-  include_vars: "{{ playbook_dir }}/vault/vault.yml"
-
 - debug:
     var: mikrotik_swos
+
+- name: include vault
+  include_vars: "{{ playbook_dir }}/vault/vault.yml"
 
 - name: apply config
   swos:
